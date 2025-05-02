@@ -1,8 +1,10 @@
 package com.biblioteca.backend.repository;
 
+import com.biblioteca.backend.exception.DataBaseOperationException;
 import com.biblioteca.backend.model.DetalleFactura;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -26,47 +28,79 @@ public class DetalleFacturaRepository {
     };
 
     public int crearDetalleFactura(DetalleFactura detalleFactura) {
-        return jdbcTemplate.queryForObject(
-                "EXEC crudDetalleFactura @idFactura = ?, @producto = ?, @cantidad = ?, @precioUnitario = ?, @opcion = 1",
-                new Object[]{detalleFactura.getIdFactura(), detalleFactura.getProducto(), detalleFactura.getCantidad(), detalleFactura.getPrecioUnitario()},
-                Integer.class
-        );
+        try {
+            return jdbcTemplate.queryForObject(
+                    "EXEC crudDetalleFactura @idFactura = ?, @producto = ?, @cantidad = ?, @precioUnitario = ?, @opcion = 1",
+                    new Object[]{detalleFactura.getIdFactura(), detalleFactura.getProducto(), detalleFactura.getCantidad(), detalleFactura.getPrecioUnitario()},
+                    Integer.class
+            );
+        } catch (DataAccessException e) {
+            System.err.println("Error al crear detalle de factura: " + e.getMessage());
+            throw new DataBaseOperationException("Error al crear el detalle de factura en la base de datos", e);
+        }
     }
 
     public int actualizarDetalleFactura(int id, DetalleFactura detalleFactura) {
-        return jdbcTemplate.update(
-                "EXEC crudDetalleFactura @id = ?, @idFactura = ?, @producto = ?, @cantidad = ?, @precioUnitario = ?, @opcion = 2",
-                id, detalleFactura.getIdFactura(), detalleFactura.getProducto(), detalleFactura.getCantidad(), detalleFactura.getPrecioUnitario()
-        );
+        try {
+            return jdbcTemplate.update(
+                    "EXEC crudDetalleFactura @id = ?, @idFactura = ?, @producto = ?, @cantidad = ?, @precioUnitario = ?, @opcion = 2",
+                    id, detalleFactura.getIdFactura(), detalleFactura.getProducto(), detalleFactura.getCantidad(), detalleFactura.getPrecioUnitario()
+            );
+        } catch (DataAccessException e) {
+            System.err.println("Error al actualizar detalle de factura con ID " + id + ": " + e.getMessage());
+            throw new DataBaseOperationException("Error al actualizar el detalle de factura en la base de datos", e);
+        }
     }
 
     public int eliminarDetalleFactura(int id) {
-        return jdbcTemplate.update(
-                "EXEC crudDetalleFactura @id = ?, @opcion = 3",
-                id
-        );
+        try {
+            return jdbcTemplate.update(
+                    "EXEC crudDetalleFactura @id = ?, @opcion = 3",
+                    id
+            );
+        } catch (DataAccessException e) {
+            System.err.println("Error al eliminar detalle de factura con ID " + id + ": " + e.getMessage());
+            throw new DataBaseOperationException("Error al eliminar el detalle de factura en la base de datos", e);
+        }
     }
 
     public List<DetalleFactura> listarDetallesPorFactura(int facturaId) {
-        return jdbcTemplate.query(
-                "EXEC crudDetalleFactura @idFactura = ?, @opcion = 4",
-                new Object[]{facturaId},
-                detalleFacturaRowMapper
-        );
+        try {
+            return jdbcTemplate.query(
+                    "EXEC crudDetalleFactura @idFactura = ?, @opcion = 4",
+                    new Object[]{facturaId},
+                    detalleFacturaRowMapper
+            );
+        } catch (DataAccessException e) {
+            System.err.println("Error al listar detalles de la factura con ID " + facturaId + ": " + e.getMessage());
+            throw new DataBaseOperationException("Error al listar los detalles de la factura desde la base de datos", e);
+        }
     }
 
     public DetalleFactura obtenerDetalleFacturaPorId(int id) {
-        return jdbcTemplate.queryForObject(
-                "EXEC crudDetalleFactura @id = ?, @opcion = 5",
-                new Object[]{id},
-                detalleFacturaRowMapper
-        );
+        try {
+            return jdbcTemplate.queryForObject(
+                    "EXEC crudDetalleFactura @id = ?, @opcion = 5",
+                    new Object[]{id},
+                    detalleFacturaRowMapper
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        } catch (DataAccessException e) {
+            System.err.println("Error al obtener detalle de factura con ID " + id + ": " + e.getMessage());
+            throw new DataBaseOperationException("Error al obtener el detalle de factura desde la base de datos", e);
+        }
     }
     public List<DetalleFactura> listarTodosDetallesFactura() {
-        return jdbcTemplate.query(
-                "EXEC crudDetalleFactura @opcion = 6",
-                detalleFacturaRowMapper
-        );
+        try {
+            return jdbcTemplate.query(
+                    "EXEC crudDetalleFactura @opcion = 6",
+                    detalleFacturaRowMapper
+            );
+        } catch (DataAccessException e) {
+            System.err.println("Error al listar todos los detalles de factura: " + e.getMessage());
+            throw new DataBaseOperationException("Error al listar todos los detalles de factura desde la base de datos", e);
+        }
     }
 
 }

@@ -1,3 +1,10 @@
+USE [bibliotecaDB]
+GO
+/****** Object:  StoredProcedure [dbo].[crudFactura]    Script Date: 2/05/2025 11:26:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 ALTER PROCEDURE [dbo].[crudFactura]
     @id INT = Null output,
     @cliente VARCHAR(200) = NULL,
@@ -44,7 +51,7 @@ BEGIN
             UPDATE dbo.Factura
             SET cliente = ISNULL(@cliente, cliente), -- Actualiza solo si se proporciona un valor
                 fecha = ISNULL(@fecha, fecha),
-                estado = ISNULL(@estado, estado)
+				estado = ISNULL(@estado, estado)
             WHERE id = @id;
 
             IF @@ROWCOUNT = 0
@@ -112,4 +119,3 @@ BEGIN
         WHERE id = @id;
     END
 END
-GO

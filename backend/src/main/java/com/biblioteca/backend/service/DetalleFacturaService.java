@@ -19,7 +19,7 @@ public class DetalleFacturaService {
     public int actualizarDetalleFactura(int id, DetalleFactura detalleFactura) {
         DetalleFactura detalleExistente = detalleFacturaRepository.obtenerDetalleFacturaPorId(id);
         if (detalleExistente == null) {
-            throw new ResourceNotFoundException("No se encontró el detalle con ID: " + id);
+            throw new ResourceNotFoundException("No se encontró el detalle de la factura con el Id numero " + id);
         }
         detalleFactura.setId(id);
         return detalleFacturaRepository.actualizarDetalleFactura(id, detalleFactura);
@@ -28,7 +28,7 @@ public class DetalleFacturaService {
     public int eliminarDetalleFactura(int id) {
         DetalleFactura detalleExistente = detalleFacturaRepository.obtenerDetalleFacturaPorId(id);
         if (detalleExistente == null) {
-            throw new ResourceNotFoundException("No se encontró el detalle con ID: " + id);
+            throw new ResourceNotFoundException("No se encontró el detalle de la factura con el Id numero " + id);
         }
         return detalleFacturaRepository.eliminarDetalleFactura(id);
     }
@@ -40,7 +40,7 @@ public class DetalleFacturaService {
     public DetalleFactura obtenerDetalleFacturaPorId(int id) {
         DetalleFactura detalle = detalleFacturaRepository.obtenerDetalleFacturaPorId(id);
         if (detalle == null) {
-            throw new ResourceNotFoundException("No se encontró el detalle con ID: " + id);
+            throw new ResourceNotFoundException("No se encontró el detalle de la factura con el Id numero " + id);
         }
         return detalle;
     }
