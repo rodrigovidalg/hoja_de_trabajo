@@ -1,0 +1,115 @@
+ALTER PROCEDURE [dbo].[crudFactura]
+    @id INT = Null output,
+    @cliente VARCHAR(200) = NULL,
+    @fecha DATETIME= null,
+    @estado INT = null,
+    @opcion INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @opcion = 1 -- Insertar
+    BEGIN
+        BEGIN TRANSACTION
+        BEGIN TRY
+            INSERT INTO dbo.Factura (cliente, fecha, estado)
+            VALUES (@cliente, @fecha, 1); -- Estado por defecto al crear
+
+            SELECT @id = SCOPE_IDENTITY();
+            SELECT @id; -- Esta línea es crucial para que queryForObject() capture el ID
+
+            COMMIT TRANSACTION
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION
+            SELECT
+                ERROR_NUMBER() AS ErrorNumber,
+                ERROR_STATE() AS ErrorState,
+                ERROR_SEVERITY() AS ErrorSeverity,
+                ERROR_PROCEDURE() AS ErrorProcedure,
+                ERROR_LINE() AS ErrorLine,
+                ERROR_MESSAGE() AS ErrorMessage;
+            RETURN;
+        END CATCH;
+    END
+
+    -- Las demás opciones (2, 3, 4, 5) deberían funcionar como están
+    -- ya que no dependen de capturar un ID con queryForObject()
+    -- (para actualizar y eliminar usas jdbcTemplate.update())
+
+    IF @opcion = 2 -- Actualizar
+    BEGIN
+        BEGIN TRANSACTION
+        BEGIN TRY
+            UPDATE dbo.Factura
+            SET cliente = ISNULL(@cliente, cliente), -- Actualiza solo si se proporciona un valor
+                fecha = ISNULL(@fecha, fecha),
+                estado = ISNULL(@estado, estado)
+            WHERE id = @id;
+
+            IF @@ROWCOUNT = 0
+            BEGIN
+                RAISERROR('No se encontró la factura con el ID proporcionado.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            END
+
+            COMMIT TRANSACTION
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION
+            SELECT
+                ERROR_NUMBER() AS ErrorNumber,
+                ERROR_STATE() AS ErrorState,
+                ERROR_SEVERITY() AS ErrorSeverity,
+                ERROR_PROCEDURE() AS ErrorProcedure,
+                ERROR_LINE() AS ErrorLine,
+                ERROR_MESSAGE() AS ErrorMessage;
+            RETURN;
+        END CATCH;
+    END
+
+    IF @opcion = 3 -- Eliminar lógico
+    BEGIN
+        BEGIN TRANSACTION
+        BEGIN TRY
+            UPDATE dbo.Factura
+            SET estado = 0
+            WHERE id = @id;
+
+            IF @@ROWCOUNT = 0
+            BEGIN
+                RAISERROR('No se encontró la factura con el ID proporcionado.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            END
+
+            COMMIT TRANSACTION
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION
+            SELECT
+                ERROR_NUMBER() AS ErrorNumber,
+                ERROR_STATE() AS ErrorState,
+                ERROR_SEVERITY() AS ErrorSeverity,
+                ERROR_PROCEDURE() AS ErrorProcedure,
+                ERROR_LINE() AS ErrorLine,
+                ERROR_MESSAGE() AS ErrorMessage;
+            RETURN;
+        END CATCH;
+    END
+
+    IF @opcion = 4 -- Listar todos
+    BEGIN
+        SELECT id, cliente, fecha, estado
+        FROM dbo.Factura;
+    END
+
+    IF @opcion = 5 -- Buscar por ID
+    BEGIN
+        SELECT id, cliente, fecha, estado
+        FROM dbo.Factura
+        WHERE id = @id;
+    END
+END
+GO

@@ -1,0 +1,95 @@
+USE [bibliotecaDB]
+GO
+/****** Object:  StoredProcedure [dbo].[crudDetalleFactura]    Script Date: 1/05/2025 21:07:11 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+ALTER PROCEDURE crudDetalleFactura
+    @opcion INT,
+    @id INT = NULL OUTPUT,
+    @idFactura INT = NULL,
+    @producto VARCHAR(200) = NULL,
+    @cantidad INT = NULL,
+    @precioUnitario DECIMAL(10, 2) = NULL,
+    @estado INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @opcion = 1
+    BEGIN
+        BEGIN TRANSACTION;
+        BEGIN TRY
+            INSERT INTO DetalleFactura (idFactura, producto, cantidad, precioUnitario, estado)
+            VALUES (@idFactura, @producto, @cantidad, @precioUnitario, 1);
+            SELECT @id = SCOPE_IDENTITY();
+            SELECT @id;
+            COMMIT TRANSACTION;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0
+                ROLLBACK TRANSACTION;
+            SELECT ERROR_NUMBER(), ERROR_STATE(), ERROR_SEVERITY(), ERROR_PROCEDURE(), ERROR_LINE(), ERROR_MESSAGE();
+            RETURN 1;
+        END CATCH;
+    END
+ELSE IF @opcion = 2 
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        UPDATE DetalleFactura
+        SET
+            idFactura = ISNULL(@idFactura, idFactura),
+            producto = ISNULL(@producto, producto),
+            cantidad = ISNULL(@cantidad, cantidad),
+            precioUnitario = ISNULL(@precioUnitario, precioUnitario)
+        WHERE id = @id;
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        SELECT ERROR_NUMBER(), ERROR_STATE(), ERROR_SEVERITY(), ERROR_PROCEDURE(), ERROR_LINE(), ERROR_MESSAGE();
+        RETURN 1;
+    END CATCH;
+END
+    ELSE IF @opcion = 3
+    BEGIN
+        BEGIN TRANSACTION;
+        BEGIN TRY
+            UPDATE DetalleFactura
+            SET estado = 0
+            WHERE id = @id;
+            COMMIT TRANSACTION;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0
+                ROLLBACK TRANSACTION;
+            SELECT ERROR_NUMBER(), ERROR_STATE(), ERROR_SEVERITY(), ERROR_PROCEDURE(), ERROR_LINE(), ERROR_MESSAGE();
+            RETURN 1;
+        END CATCH;
+    END
+    ELSE IF @opcion = 4
+    BEGIN
+        SELECT id, idFactura, producto, cantidad, precioUnitario, estado
+        FROM DetalleFactura
+        WHERE idFactura = @idFactura AND estado = 1; -- Listar solo activos
+    END
+    ELSE IF @opcion = 5
+    BEGIN
+        SELECT id, idFactura, producto, cantidad, precioUnitario, estado
+        FROM DetalleFactura
+        WHERE id = @id;
+    END
+	ELSE IF @opcion = 6 -- Listar Todos los Detalles de Factura
+BEGIN
+    SELECT id, idFactura, producto, cantidad, precioUnitario, estado
+    FROM DetalleFactura;
+END
+END;
